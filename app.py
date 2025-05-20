@@ -2,12 +2,12 @@ import streamlit as st
 import uuid
 from supabase import create_client, Client
 
+st.set_page_config(page_title="Icebreaker Game", layout="centered")
+
 # Load Supabase credentials from secrets
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
-
-st.set_page_config(page_title="Icebreaker Game", layout="centered")
 
 def player_view():
     st.title("🎉 Break the Ice & Win!")
