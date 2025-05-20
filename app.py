@@ -3,8 +3,8 @@ import uuid
 from supabase import create_client, Client
 
 # Load Supabase credentials from secrets
-url = st.secrets["SUPABASE_URL"]
-key = st.secrets["SUPABASE_KEY"]
+url = st.secrets["https://cmdneldiaexqzyztcsch.supabase.co"]
+key = st.secrets["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtZG5lbGRpYWV4cXp5enRjc2NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3NjEwNDMsImV4cCI6MjA2MzMzNzA0M30.rOTFpXMCp1c-nuyXw0k15S5xUP3eKvR_Exw0k14LkpM"]
 supabase: Client = create_client(url, key)
 
 st.set_page_config(page_title="Icebreaker Game", layout="centered")
