@@ -1,7 +1,6 @@
 import streamlit as st
 import uuid
 from supabase import create_client, Client
-
 st.set_page_config(page_title="Icebreaker Game", layout="centered")
 
 # Load Supabase credentials from secrets
