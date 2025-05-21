@@ -18,16 +18,9 @@ st.markdown("""
             left: 50%;
             transform: translate(-50%, -50%);
             color: white;
-            font-size: 3em;
+            font-size: 3vw;  /* Responsive font size */
             font-weight: bold;
             text-shadow: 2px 2px 4px #000;
-        }
-        /* Cyan blue radio buttons */
-        div[data-baseweb="radio"] > div {
-            color: #00bcd4;
-        }
-        div[data-baseweb="radio"] input:checked + div {
-            background-color: #00bcd4 !important;
         }
     </style>
     <div class="banner-container">
