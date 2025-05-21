@@ -2,13 +2,39 @@ import streamlit as st
 import uuid
 from supabase import create_client, Client
 
-# ✅ Set page config FIRST before any other Streamlit commands
+# Set page config
 st.set_page_config(page_title="Icebreaker Game", layout="centered")
 
-st.image(
-    "https://res.cloudinary.com/startup-grind/image/upload/c_scale,w_2560/c_crop,h_640,w_2560,y_0.0_mul_h_sub_0.0_mul_640/c_crop,h_640,w_2560/c_fill,dpr_2.0,f_auto,g_center,q_auto:good/v1/gcs/platform-data-snowflake/event_banners/User%20Groups%20Filler%20Banner_yAwMUPz.png",
-    use_container_width=True
-)
+# Banner with overlay text
+st.markdown("""
+    <style>
+        .banner-container {
+            position: relative;
+            text-align: center;
+        }
+        .banner-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 3em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px #000;
+        }
+        /* Cyan blue radio buttons */
+        div[data-baseweb="radio"] > div {
+            color: #00bcd4;
+        }
+        div[data-baseweb="radio"] input:checked + div {
+            background-color: #00bcd4 !important;
+        }
+    </style>
+    <div class="banner-container">
+        <img src="https://res.cloudinary.com/startup-grind/image/upload/c_scale,w_2560/c_crop,h_640,w_2560,y_0.0_mul_h_sub_0.0_mul_640/c_crop,h_640,w_2560/c_fill,dpr_2.0,f_auto,g_center,q_auto:good/v1/gcs/platform-data-snowflake/event_banners/User%20Groups%20Filler%20Banner_yAwMUPz.png" style="width: 100%;">
+        <div class="banner-text">Boston Snowflake User Group</div>
+    </div>
+""", unsafe_allow_html=True)
 
 # Load Supabase credentials
 url = st.secrets["SUPABASE_URL"]
@@ -17,7 +43,7 @@ supabase = create_client(url, key)
 
 # ------------------ Player View ------------------
 def player_view():
-    st.title("❄️Break the Ice & Win!")
+    st.title("❄️ Break the Ice & Win!")
     username = st.text_input("Enter your name to join the game:")
 
     if username:
@@ -93,7 +119,23 @@ def leaderboard_view():
 
 # ------------------ Navigation ------------------
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Player View", "Admin View", "Leaderboard"])
+
+# Password-protected admin view
+admin_access = False
+if "admin_authenticated" not in st.session_state:
+    st.session_state["admin_authenticated"] = False
+
+if not st.session_state["admin_authenticated"]:
+    password_input = st.sidebar.text_input("Enter admin password to unlock admin view:", type="password")
+    if password_input == "password":
+        st.session_state["admin_authenticated"] = True
+        st.sidebar.success("Admin view unlocked!")
+
+pages = ["Player View", "Leaderboard"]
+if st.session_state["admin_authenticated"]:
+    pages.insert(1, "Admin View")
+
+page = st.sidebar.radio("Go to", pages)
 
 if page == "Player View":
     player_view()
