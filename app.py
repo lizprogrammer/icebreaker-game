@@ -4,7 +4,11 @@ from supabase import create_client, Client
 
 # ✅ Set page config FIRST before any other Streamlit commands
 st.set_page_config(page_title="Icebreaker Game", layout="centered")
-st.image("https://res.cloudinary.com/startup-grind/image/upload/c_scale,w_2560/c_crop,h_640,w_2560,y_0.0_mul_h_sub_0.0_mul_640/c_crop,h_640,w_2560/c_fill,dpr_2.0,f_auto,g_center,q_auto:good/v1/gcs/platform-data-snowflake/event_banners/User%20Groups%20Filler%20Banner_yAwMUPz.png", use_column_width=True)
+
+st.image(
+    "https://res.cloudinary.com/startup-grind/image/upload/c_scale,w_2560/c_crop,h_640,w_2560,y_0.0_mul_h_sub_0.0_mul_640/c_crop,h_640,w_2560/c_fill,dpr_2.0,f_auto,g_center,q_auto:good/v1/gcs/platform-data-snowflake/event_banners/User%20Groups%20Filler%20Banner_yAwMUPz.png",
+    use_container_width=True
+)
 
 # Load Supabase credentials
 url = st.secrets["SUPABASE_URL"]
@@ -13,7 +17,7 @@ supabase = create_client(url, key)
 
 # ------------------ Player View ------------------
 def player_view():
-    st.title("🎉 Break the Ice & Win!")
+    st.title("❄️Break the Ice & Win!")
     username = st.text_input("Enter your name to join the game:")
 
     if username:
