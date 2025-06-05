@@ -58,45 +58,42 @@ def player_view():
         question_data = supabase.table("game").select("*").execute().data
 
         if question_data:
-            # Find the next unanswered question
-            answered_questions = supabase.table("answers").select("question_id").eq("user_id", user_id).execute().data
-            answered_ids = {q["question_id"] for q in answered_questions}
+            # Track progress through session state
+            if "question_index" not in st.session_state:
+                st.session_state["question_index"] = 0
 
-            next_question = next((q for q in question_data if q["id"] not in answered_ids), None)
+            current_question = question_data[st.session_state["question_index"]]
+            st.subheader(current_question["question"])
+            correct_answer = current_question.get("correct_answer", "").lower().strip()
+            answer = st.text_input("Your answer:")
 
-            if next_question:
-                st.subheader(next_question["question"])
-                correct_answer = next_question.get("correct_answer", "").lower().strip()
-                answer = st.text_input("Your answer:")
+            if st.button("Submit Answer"):
+                answer_clean = answer.lower().strip()
+                is_correct = answer_clean == correct_answer
 
-                if st.button("Submit Answer"):
-                    answer_clean = answer.lower().strip()
-                    is_correct = answer_clean == correct_answer
+                # Save the answer
+                supabase.table("answers").insert({
+                    "user_id": user_id,
+                    "username": username,
+                    "answer": answer,
+                    "question_id": current_question["id"],
+                    "is_correct": is_correct
+                }).execute()
 
-                    # Save the answer
-                    supabase.table("answers").insert({
-                        "user_id": user_id,
-                        "username": username,
-                        "answer": answer,
-                        "question_id": next_question["id"],
-                        "is_correct": is_correct
-                    }).execute()
+                if is_correct:
+                    # Increment score
+                    player = supabase.table("players").select("score").eq("id", user_id).execute().data[0]
+                    new_score = player["score"] + 1
+                    supabase.table("players").update({"score": new_score}).eq("id", user_id).execute()
+                    st.success("Correct! You earned a point 🎉")
+                else:
+                    st.warning("Oops! That's not quite right.")
 
-                    if is_correct:
-                        # Increment score
-                        player = supabase.table("players").select("score").eq("id", user_id).execute().data[0]
-                        new_score = player["score"] + 1
-                        supabase.table("players").update({"score": new_score}).eq("id", user_id).execute()
-                        st.success("Correct! You earned a point 🎉")
-                    else:
-                        st.warning("Oops! That's not quite right.")
-
-                    # Refresh to move to next question
-                    st.experimental_rerun()
-            else:
-                st.success("You've answered all available questions. Great job! 🎉")
-        else:
-            st.info("Waiting for the host to start the game...")
+                # Move to the next question
+                if st.session_state["question_index"] < len(question_data) - 1:
+                    st.session_state["question_index"] += 1
+                else:
+                    st.success("You've answered all available questions. Great job! 🎉")
 
 # ------------------ Admin View ------------------
 def admin_view():
