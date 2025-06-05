@@ -54,34 +54,47 @@ def player_view():
             user_id = st.session_state["user_id"]
             username = st.session_state["username"]
 
-        question_data = supabase.table("game").select("*").eq("id", "current_question").execute().data
+        # Fetch all available questions
+        question_data = supabase.table("game").select("*").execute().data
+
         if question_data:
-            question = question_data[0]["question"]
-            correct_answer = question_data[0].get("correct_answer", "").lower().strip()
-            st.subheader(question)
-            answer = st.text_input("Your answer:")
+            # Find the next unanswered question
+            answered_questions = supabase.table("answers").select("question_id").eq("user_id", user_id).execute().data
+            answered_ids = {q["question_id"] for q in answered_questions}
 
-            if st.button("Submit Answer"):
-                answer_clean = answer.lower().strip()
-                is_correct = answer_clean == correct_answer
+            next_question = next((q for q in question_data if q["id"] not in answered_ids), None)
 
-                # Save the answer
-                supabase.table("answers").insert({
-                    "user_id": user_id,
-                    "username": username,
-                    "answer": answer,
-                    "question_id": "current_question",
-                    "is_correct": is_correct
-                }).execute()
+            if next_question:
+                st.subheader(next_question["question"])
+                correct_answer = next_question.get("correct_answer", "").lower().strip()
+                answer = st.text_input("Your answer:")
 
-                if is_correct:
-                    # Increment score
-                    player = supabase.table("players").select("score").eq("id", user_id).execute().data[0]
-                    new_score = player["score"] + 1
-                    supabase.table("players").update({"score": new_score}).eq("id", user_id).execute()
-                    st.success("Correct! You earned a point 🎉")
-                else:
-                    st.warning("Oops! That's not quite right.")
+                if st.button("Submit Answer"):
+                    answer_clean = answer.lower().strip()
+                    is_correct = answer_clean == correct_answer
+
+                    # Save the answer
+                    supabase.table("answers").insert({
+                        "user_id": user_id,
+                        "username": username,
+                        "answer": answer,
+                        "question_id": next_question["id"],
+                        "is_correct": is_correct
+                    }).execute()
+
+                    if is_correct:
+                        # Increment score
+                        player = supabase.table("players").select("score").eq("id", user_id).execute().data[0]
+                        new_score = player["score"] + 1
+                        supabase.table("players").update({"score": new_score}).eq("id", user_id).execute()
+                        st.success("Correct! You earned a point 🎉")
+                    else:
+                        st.warning("Oops! That's not quite right.")
+
+                    # Refresh to move to next question
+                    st.experimental_rerun()
+            else:
+                st.success("You've answered all available questions. Great job! 🎉")
         else:
             st.info("Waiting for the host to start the game...")
 
@@ -93,8 +106,8 @@ def admin_view():
 
     if st.button("Push Question"):
         if question and correct_answer:
-            supabase.table("game").upsert({
-                "id": "current_question",
+            supabase.table("game").insert({
+                "id": str(uuid.uuid4()),  # Generate unique question IDs
                 "question": question,
                 "correct_answer": correct_answer.lower().strip()
             }).execute()
@@ -114,7 +127,6 @@ def leaderboard_view():
 st.sidebar.title("Navigation")
 
 # Password-protected admin view
-admin_access = False
 if "admin_authenticated" not in st.session_state:
     st.session_state["admin_authenticated"] = False
 
